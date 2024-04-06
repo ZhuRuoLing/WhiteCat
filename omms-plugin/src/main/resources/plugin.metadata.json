@@ -1,5 +1,5 @@
 {
-  "id": "omms_mcsm_support",
+  "id": "whitecat",
   "version": "${version}",
   "main": "icu.takeneko.whitecat.omms.WhiteCatPlugin",
   "author": "ZhuRuoLing"
