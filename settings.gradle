@@ -1,0 +1,10 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.5.0'
+}
+rootProject.name = 'whitecat'
+
+def projects = ["mirai", "omms-plugin"]
+
+for (final def p in projects) {
+    include(p)
+}
