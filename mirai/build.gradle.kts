@@ -16,6 +16,7 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    maven ("https://libraries.minecraft.net")
 }
 
 
@@ -41,6 +42,7 @@ dependencies {
     compileOnly("net.mamoe:mirai-core:2.16.0")
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("it.unimi.dsi:fastutil-core:8.5.4")
+    implementation("com.mojang:brigadier:1.0.18")
 }
 
 tasks.withType<ShadowJar>(){

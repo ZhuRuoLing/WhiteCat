@@ -8,3 +8,5 @@ def projects = ["mirai", "omms-plugin"]
 for (final def p in projects) {
     include(p)
 }
+
+
