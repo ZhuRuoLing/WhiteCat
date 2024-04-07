@@ -12,7 +12,7 @@ import java.rmi.RemoteException
 import java.util.regex.Pattern
 import kotlin.io.path.*
 
-class RconWhitelistManipulateService(private val groupUin: Long) : WhitelistManipulateService {
+class RconWhitelistManipulateService(private val groupUin: String) : WhitelistManipulateService {
 
     private val rcons = mutableMapOf<String, Rcon>()
     private val groupedRcons = mutableMapOf<String, List<Rcon>>()

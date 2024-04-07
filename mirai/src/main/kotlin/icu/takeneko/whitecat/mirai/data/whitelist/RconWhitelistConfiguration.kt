@@ -13,8 +13,8 @@ data class RconServerConfiguration(
     val password:String,
     val addWhitelistCommand:String = "whitelist add %playerName%",
     val removeWhitelistCommand:String = "whitelist remove %playerName%",
-    val addWhitelistResultPattern:String = "Added [a-zA-Z][a-zA-Z0-9]+ to the whitelist",
-    val removeWhitelistResultPattern:String = "Removed [a-zA-Z][a-zA-Z0-9]+ from the whitelist"
+    val addWhitelistResultPattern:String = "Added [a-zA-Z][a-zA-Z0-9_]+ to the whitelist",
+    val removeWhitelistResultPattern:String = "Removed [a-zA-Z][a-zA-Z0-9_]+ from the whitelist"
 )
 
 @Serializable

@@ -15,7 +15,9 @@ import net.mamoe.mirai.event.events.BotOnlineEvent
 import net.mamoe.mirai.event.events.FriendMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.action.Nudge.Companion.sendNudge
-import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.message.data.At
+import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.buildMessageChain
 
 object Plugin : KotlinPlugin(
     JvmPluginDescription(
@@ -30,25 +32,25 @@ object Plugin : KotlinPlugin(
     override fun onEnable() {
         val startTime = System.currentTimeMillis()
         Data.loadAll()
+
+        val groupSettings = config.get().groupSettings.entries.joinToString(separator = "\n", "", "") {
+            "\t\tGroup: ${it.key}\n" +
+                    "\t\t\t- operators: ${it.value.operators.joinToString(", ", "", "")}\n" +
+                    "\t\t\t- allowedRequests: ${it.value.allowedRequests.joinToString(", ", "", "")}\n" +
+                    "\t\t\t- whitelistServiceProvider: ${it.value.whitelistServiceProvider}\n"
+        }
         config.run {
             logger.info(
-                """
-            Config:
-                - owner: $owner
-                - allowOwnerFullAccess: $allowOwnerFullAccess
-                - enabledIn: ${availableGroups.joinToString(", ", "", "")}
-                - groupSettings: ${
-                    groupSettings.entries.joinToString(separator = "\n", "", "") {
-                        """
-                        => Group: ${it.key}
-                            - operators: ${it.value.operators.joinToString(", ", "", "")}
-                            - allowedRequests: ${it.value.allowedRequests.joinToString(", ", "", "")}
-                            - whitelistServiceProvider: ${it.value.whitelistServiceProvider}
-                """.trimIndent()
-                    }
-                }
-        """.trimIndent()
+                "Config:\n" +
+                        "\t- owner: $owner\n" +
+                        "\t- allowOwnerFullAccess: $allowOwnerFullAccess\n" +
+                        "\t- enabledIn: ${availableGroups.joinToString(", ", "", "")}\n" +
+                        "\t- groupSettings:\n$groupSettings"
             )
+        }
+        logger.info("Initiating whitelist services")
+        config.get().groupSettings.forEach {(s,setting) ->
+            setting.initWhitelistService(s)
         }
         val eventChannel = GlobalEventChannel.parentScope(this)
 
@@ -80,7 +82,7 @@ object Plugin : KotlinPlugin(
     fun respondInGroup(group: Group, member: Member, message: MessageChain) {
         launch {
             group.sendNudge(member.nudge())
-            group.sendMessage(At(member) + message)
+            group.sendMessage(At(member) + "\n" + message)
         }
     }
 
@@ -99,20 +101,21 @@ object Plugin : KotlinPlugin(
     }
 
     fun broadcastToOpsInGroup(group: Group, message: MessageChain) {
-        if (group.id in config.get().groupSettings.keys && group.id in config.get().availableGroups) {
+        if (group.id.toString() in config.get().groupSettings.keys && group.id in config.get().availableGroups) {
             broadcast(
                 config.get()
-                    .groupSettings[group.id]!!
+                    .groupSettings[group.id.toString()]!!
                     .operators.mapNotNull { group.getMember(it)?.asFriendOrNull() },
                 message
             )
         }
     }
 
-    fun sendAllPendingRequests(target: Friend){
+    fun sendAllPendingRequests(target: Friend) {
         launch {
-            val groups = (config.get().operators2GroupMap[target.id] ?: return@launch).map{ it.toString() }
-            val requests = PendingRequests.whitelistRequests.get().filter { it.group in groups}
+            val groups =
+                (config.get().operators2GroupMap[target.id.toString()] ?: return@launch).map { it.toString() }
+            val requests = PendingRequests.whitelistRequests.get().filter { it.group in groups }
             val msg = buildMessageChain {
                 add("=> Pending Requests\n")
                 requests.groupBy { it.group }.forEach { t, u ->

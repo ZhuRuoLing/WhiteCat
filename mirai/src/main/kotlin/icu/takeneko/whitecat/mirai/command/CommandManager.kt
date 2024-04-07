@@ -18,7 +18,8 @@ object CommandManager {
 
     fun handleGroupMessage(event: GroupMessageEvent) {
         val ctx = Context(event.sender.id, event.sender, event.message.toMessageChain(), event.group.id, event.group)
-        val command = event.message.toString().removePrefix(config.get().commandPrefix)
+        if (!event.message.contentToString().startsWith(config.get().commandPrefix))return
+        val command = event.message.contentToString().removePrefix(config.get().commandPrefix)
         try {
             dispatcher.execute(command, ctx)
         } catch (_: CommandSyntaxException) {
@@ -30,7 +31,8 @@ object CommandManager {
 
     fun handleFriendMessage(event: FriendMessageEvent) {
         val ctx = Context(event.sender.id, event.sender, event.message.toMessageChain(), 0, null)
-        val command = event.message.toString().removePrefix(config.get().commandPrefix)
+        if (!event.message.contentToString().startsWith(config.get().commandPrefix))return
+        val command = event.message.contentToString().removePrefix(config.get().commandPrefix)
         try {
             dispatcher.execute(command, ctx)
         } catch (_: CommandSyntaxException) {

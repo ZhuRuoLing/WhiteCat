@@ -2,7 +2,7 @@ package icu.takeneko.whitecat.mirai.service.whitelist.impl
 
 import icu.takeneko.whitecat.mirai.service.whitelist.WhitelistManipulateService
 
-class OMMSWhitelistManipulateService(val groupUin: Long): WhitelistManipulateService {
+class OMMSWhitelistManipulateService(val groupUin: String): WhitelistManipulateService {
 
     override fun initService() {
         TODO("Not yet implemented")

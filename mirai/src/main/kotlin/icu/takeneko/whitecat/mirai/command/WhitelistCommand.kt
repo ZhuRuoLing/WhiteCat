@@ -14,7 +14,7 @@ import net.mamoe.mirai.contact.nameCardOrNick
 val whitelistCommand = LiteralCommand("wl") {
     literal("req") {
         literal("a") {
-            requires { this.isFromGroup && this.groupUin in config.get().availableGroups && this.groupUin in config.get().groupSettings.keys }
+            requires { this.isFromGroup && this.groupUin in config.get().availableGroups && this.groupUin.toString() in config.get().groupSettings.keys }
             wordArgument("playerName") {
                 execute {
                     val playerName = getStringArgument("playerName")
@@ -41,7 +41,7 @@ val whitelistCommand = LiteralCommand("wl") {
                         execute {
                             val playerName = getStringArgument("playerName")
                             val serverTarget = getStringArgument("serverTarget")
-                            if (serverTarget !in config.get().groupSettings[this.source.groupUin]!!.whitelistService.listAvailable()) {
+                            if (serverTarget !in config.get().groupSettings[this.source.groupUin.toString()]!!.whitelistService.listAvailable()) {
                                 sendFeedback("$serverTarget not found in all ServerTargets")
                                 return@execute 1
                             }
@@ -68,7 +68,7 @@ val whitelistCommand = LiteralCommand("wl") {
             }
         }
         literal("r") {
-            requires { this.groupUin in config.get().availableGroups && this.groupUin in config.get().groupSettings.keys }
+            requires { this.groupUin in config.get().availableGroups && this.groupUin.toString() in config.get().groupSettings.keys }
             wordArgument("playerName") {
                 execute {
                     val playerName = getStringArgument("playerName")
@@ -95,7 +95,7 @@ val whitelistCommand = LiteralCommand("wl") {
                         execute {
                             val playerName = getStringArgument("playerName")
                             val serverTarget = getStringArgument("serverTarget")
-                            if (serverTarget !in config.get().groupSettings[this.source.groupUin]!!.whitelistService.listAvailable()) {
+                            if (serverTarget !in config.get().groupSettings[this.source.groupUin.toString()]!!.whitelistService.listAvailable()) {
                                 sendFeedback("$serverTarget not found in all ServerTargets")
                                 return@execute 1
                             }
@@ -139,14 +139,19 @@ val whitelistCommand = LiteralCommand("wl") {
         }
     }
     literal("tgt") {
-        requires { (this.groupUin in config.get().availableGroups && this.groupUin in config.get().groupSettings.keys) || this.senderUin in config.get().allOperators }
+        requires { (this.groupUin in config.get().availableGroups && this.groupUin.toString() in config.get().groupSettings.keys) || this.senderUin in config.get().allOperators }
         execute {
-            val avail = config.get().groupSettings[this.source.groupUin]!!.whitelistService.listAvailable()
+            val avail = if (this.source.isFromGroup)
+                listOf(config.get().groupSettings[this.source.groupUin.toString()]!!.whitelistService.listAvailable())
+            else
+                config.get().operators2GroupMap[this.source.senderUin.toString()]!!.mapNotNull { config.get().groupSettings[it.toString()]?.whitelistService?.listAvailable() }
             sendFeedback(
                 "=> All Available ServerTargets\n${
                     buildString {
-                        avail.forEach { (k, v) ->
-                            append("$k ~ $v\n")
+                        avail.forEach {
+                            for ((k, v) in it) {
+                                append("$k: $v\n")
+                            }
                         }
                     }
                 }"
@@ -250,11 +255,11 @@ val whitelistCommand = LiteralCommand("wl") {
 fun refuseRequests(commandContext: Context, filter: (WhitelistRequest) -> Boolean) {
     val requests = PendingRequests.whitelistRequests.get().filter(filter)
     if (requests.isEmpty()) {
-        commandContext.sendFeedback("No matching for the given filter.")
+        commandContext.sendFeedback("No matches for the given filter.")
         return
     }
     val message = buildString {
-        append("=> Refusing ${requests.size} request${if (requests.size == 1) "" else "s"}")
+        append("=> Refusing ${requests.size} request${if (requests.size == 1) "" else "s"}\n")
         requests.forEach {
             append("[${it.requestId}] ${it.sourceDescriptor}(${it.source}) requested to ${it.operation.describe()} ${it.player}${if (it.targetDescriptor == null) "" else " into ${it.targetDescriptor}"}\n")
         }
@@ -270,17 +275,16 @@ fun approveRequests(
 ) {
     val requests = PendingRequests.whitelistRequests.get().filter(filter).map(targetTransformer)
     if (requests.isEmpty()) {
-        commandContext.sendFeedback("No matching for the given filter.")
+        commandContext.sendFeedback("No matches for the given filter.")
         return
     }
     val request2GroupSettingMap = mutableMapOf<WhitelistRequest, GroupSetting>()
     val settings = config.get().groupSettings.map { it.key.toString() to it.value }.toMap()
-    val allAvailableServers =
-        request2GroupSettingMap.values.map { it.whitelistService.listAvailable() }.flatMap { it.keys }
+    val allAvailableServers = settings.values.map { it.whitelistService.listAvailable() }.flatMap { it.keys }
     val message = buildString {
         val allReasons = mutableListOf<String>()
         val reasons = mutableListOf<String>()
-        append("=> Approving ${requests.size} request${if (requests.size == 1) "" else "s"}")
+        append("=> Approving ${requests.size} request${if (requests.size == 1) "" else "s"}\n")
         requests.forEach {
             if (it.group !in settings) {
                 reasons += "Request ${it.requestId} does not come from any existing group"
@@ -301,7 +305,7 @@ fun approveRequests(
         }
         if (allReasons.isNotEmpty()) {
             append("Requests tagged with [×] will remain unchanged.\n")
-            append("=> Reasons:")
+            append("=> Reasons:\n")
             allReasons.forEach { append("$it\n") }
         }
     }
@@ -312,6 +316,7 @@ fun approveRequests(
     }
     commandContext.sendFeedback("All checks are finished, applying ${request2GroupSettingMap.size} request${if (request2GroupSettingMap.size == 1) "" else "s"}.")
     val feedbacks = mutableListOf<String>()
+    val removes = mutableListOf<WhitelistRequest>()
     request2GroupSettingMap.forEach { (k, v) ->
         try {
             when (k.operation) {
@@ -325,20 +330,22 @@ fun approveRequests(
                     v.whitelistService.remove(k.targetDescriptor!!, k.player)
                 }
             }
+            removes += k
         } catch (t: Throwable) {
             val exMessage = if (t is RuntimeException){
-                t.toString() + "\n" + t.suppressed.map { it.toString() + "\n" }
+                t.toString() + "\n" + t.suppressed.map { "    $it" }.joinToString("\n","","")
             }else{
                 t.toString()
             }
-            feedbacks.add("Error occurred applying request ${k.player}(${k.requestId}): $exMessage")
+            feedbacks.add("Error occurred applying request ${k.player}(${k.requestId}):\n$exMessage")
         }
     }
     if (feedbacks.isNotEmpty()) {
         commandContext.sendFeedback(feedbacks.joinToString("\n", "", ""))
     }
+    PendingRequests.whitelistRequests.removeAll(removes)
 }
 
 fun Config.getOperators(group: Long): List<Long>? {
-    return this.groupSettings[group]?.operators
+    return this.groupSettings[group.toString()]?.operators
 }

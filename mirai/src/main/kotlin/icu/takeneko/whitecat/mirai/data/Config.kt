@@ -8,17 +8,17 @@ data class Config(
     val botId: Long,
     val allowOwnerFullAccess: Boolean,
     val availableGroups: List<Long>,
-    val groupSettings: Map<Long, GroupSetting>,
+    val groupSettings: Map<String, GroupSetting>,
     val commandPrefix:String
 ) {
     val allOperators
         get() = groupSettings.map { it.value.operators }.flatten()
 
     val operators2GroupMap
-        get() = buildMap<Long,List<Long>> {
+        get() = buildMap<String,List<Long>> {
             groupSettings.values.forEach { gs ->
                 gs.operators.forEach {l ->
-                    this[l] = groupSettings.filter { (k,v) -> l in v.operators }.map { it.key }
+                    this[l.toString()] = groupSettings.filter { (k,v) -> l in v.operators }.map { it.key.toLong() }
                 }
             }
         }
