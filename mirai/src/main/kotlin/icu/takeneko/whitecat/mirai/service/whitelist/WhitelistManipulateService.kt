@@ -5,7 +5,6 @@ interface WhitelistManipulateService {
 
     fun add(target: String, player: String)
     fun remove(target: String, player: String)
-    fun rename(target: String, oldPlayer: String, newPlayer: String)
 
     fun listAvailable(): Map<String, String>
 }

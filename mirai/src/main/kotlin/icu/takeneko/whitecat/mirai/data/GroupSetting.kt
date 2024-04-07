@@ -1,5 +1,6 @@
 package icu.takeneko.whitecat.mirai.data
 
+import icu.takeneko.whitecat.mirai.data.request.RequestOps
 import icu.takeneko.whitecat.mirai.service.WhitelistServiceProviders
 import icu.takeneko.whitecat.mirai.service.whitelist.WhitelistManipulateService
 import kotlinx.serialization.Serializable

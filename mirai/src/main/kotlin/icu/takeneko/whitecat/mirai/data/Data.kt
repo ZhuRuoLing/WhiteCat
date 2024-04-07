@@ -1,5 +1,6 @@
 package icu.takeneko.whitecat.mirai.data
 
+import icu.takeneko.whitecat.mirai.data.request.WhitelistRequest
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectory
 import kotlin.io.path.exists

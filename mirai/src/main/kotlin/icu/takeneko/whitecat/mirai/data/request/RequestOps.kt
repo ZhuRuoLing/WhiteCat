@@ -1,4 +1,4 @@
-package icu.takeneko.whitecat.mirai.data
+package icu.takeneko.whitecat.mirai.data.request
 
 enum class RequestOps {
     ADD{

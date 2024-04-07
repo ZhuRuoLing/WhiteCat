@@ -3,6 +3,9 @@ package icu.takeneko.whitecat.mirai.command
 import icu.takeneko.whitecat.mirai.Plugin
 import icu.takeneko.whitecat.mirai.data.*
 import icu.takeneko.whitecat.mirai.data.Data.config
+import icu.takeneko.whitecat.mirai.data.request.PendingRequests
+import icu.takeneko.whitecat.mirai.data.request.RequestOps
+import icu.takeneko.whitecat.mirai.data.request.WhitelistRequest
 import net.mamoe.mirai.contact.Friend
 import net.mamoe.mirai.contact.asFriendOrNull
 import net.mamoe.mirai.contact.getMember
@@ -323,7 +326,12 @@ fun approveRequests(
                 }
             }
         } catch (t: Throwable) {
-            feedbacks.add("Error occurred applying request ${k.player}(${k.requestId}): $t")
+            val exMessage = if (t is RuntimeException){
+                t.toString() + "\n" + t.suppressed.map { it.toString() + "\n" }
+            }else{
+                t.toString()
+            }
+            feedbacks.add("Error occurred applying request ${k.player}(${k.requestId}): $exMessage")
         }
     }
     if (feedbacks.isNotEmpty()) {

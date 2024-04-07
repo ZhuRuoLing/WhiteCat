@@ -1,4 +1,5 @@
-package icu.takeneko.whitecat.mirai.data
+package icu.takeneko.whitecat.mirai.data.request
+
 
 import kotlinx.serialization.Serializable
 import java.security.SecureRandom
@@ -16,6 +17,7 @@ data class WhitelistRequest(
 ) {
 
 }
+
 private val random = SecureRandom()
 
 private fun newRequestId(): Int {

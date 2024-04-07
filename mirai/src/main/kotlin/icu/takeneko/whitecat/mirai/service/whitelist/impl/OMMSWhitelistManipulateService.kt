@@ -16,10 +16,6 @@ class OMMSWhitelistManipulateService(val groupUin: Long): WhitelistManipulateSer
         TODO("Not yet implemented")
     }
 
-    override fun rename(target: String, oldPlayer: String, newPlayer: String) {
-        TODO("Not yet implemented")
-    }
-
     override fun listAvailable(): Map<String, String> {
         TODO("Not yet implemented")
     }

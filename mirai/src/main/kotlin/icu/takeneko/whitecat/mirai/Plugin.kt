@@ -3,7 +3,7 @@ package icu.takeneko.whitecat.mirai
 import icu.takeneko.whitecat.mirai.command.CommandManager
 import icu.takeneko.whitecat.mirai.data.Data
 import icu.takeneko.whitecat.mirai.data.Data.config
-import icu.takeneko.whitecat.mirai.data.PendingRequests
+import icu.takeneko.whitecat.mirai.data.request.PendingRequests
 import icu.takeneko.whitecat.mirai.util.BuildProperties
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.Bot

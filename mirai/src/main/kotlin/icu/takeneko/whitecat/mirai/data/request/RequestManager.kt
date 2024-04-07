@@ -1,4 +1,4 @@
-package icu.takeneko.whitecat.mirai.data
+package icu.takeneko.whitecat.mirai.data.request
 
 class RequestManager<T : Any, U : MutableList<T>>(
     private val dataProvider: () -> U,

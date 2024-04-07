@@ -41,8 +41,8 @@ dependencies {
     compileOnly("net.mamoe:mirai-console:2.16.0")
     compileOnly("net.mamoe:mirai-core:2.16.0")
     implementation("com.google.code.gson:gson:2.9.0")
-    implementation("it.unimi.dsi:fastutil-core:8.5.4")
     implementation("com.mojang:brigadier:1.0.18")
+    implementation("nl.vv32.rcon:rcon:1.2.0")
 }
 
 tasks.withType<ShadowJar>(){
