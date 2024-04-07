@@ -1,5 +1,6 @@
 package icu.takeneko.whitecat.mirai.data
 
+import kotlinx.serialization.builtins.ArraySerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectory
@@ -21,11 +22,11 @@ object Data {
             "!"
         ), Config.serializer()
     )
-    val whitelistRequests = DataObject(
+    val whitelistRequests = MutableListDataObject(
         dataPath,
         "whitelistRequests",
         listOf(),
-        ListSerializer(WhitelistRequest.serializer())
+        WhitelistRequest.serializer()
     )
 
     fun loadAll() {

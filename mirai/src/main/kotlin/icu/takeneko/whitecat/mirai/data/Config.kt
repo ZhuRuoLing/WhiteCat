@@ -13,6 +13,15 @@ data class Config(
 ) {
     val allOperators
         get() = groupSettings.map { it.value.operators }.flatten()
+
+    val operators2GroupMap
+        get() = buildMap<Long,List<Long>> {
+            groupSettings.values.forEach { gs ->
+                gs.operators.forEach {l ->
+                    this[l] = groupSettings.filter { (k,v) -> l in v.operators }.map { it.key }
+                }
+            }
+        }
 }
 
 

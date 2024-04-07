@@ -14,10 +14,10 @@ val helpCommand = LiteralCommand("help").requires {
             append("${config.get().commandPrefix}wl req r <PlayerName> -> Request to remove whitelist")
             append("${config.get().commandPrefix}wl req a <PlayerName> into <ServerTarget> -> Request to add whitelist into exactly server target")
             append("${config.get().commandPrefix}wl req r <PlayerName> into <ServerTarget> -> Request to remove whitelist into exactly server target")
-        }else{
+        } else {
             append("${config.get().commandPrefix}wl req cl -> Clear all whitelist requests")
             append("${config.get().commandPrefix}wl tgt -> List all server targets")
-            append("${config.get().commandPrefix}wl req p <PlayerName> -> List all whitelist requests")
+            append("${config.get().commandPrefix}wl req p -> List all whitelist requests")
             append("${config.get().commandPrefix}wl approve <PlayerName> -> Approve a whitelist request")
             append("${config.get().commandPrefix}wl approve <PlayerName> into <ServerTarget> -> Approve a whitelist request to apply exactly into server target")
 

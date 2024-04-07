@@ -3,6 +3,7 @@ package icu.takeneko.whitecat.mirai
 import icu.takeneko.whitecat.mirai.command.CommandManager
 import icu.takeneko.whitecat.mirai.data.Data
 import icu.takeneko.whitecat.mirai.data.Data.config
+import icu.takeneko.whitecat.mirai.data.PendingRequests
 import icu.takeneko.whitecat.mirai.util.BuildProperties
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.Bot
@@ -14,8 +15,7 @@ import net.mamoe.mirai.event.events.BotOnlineEvent
 import net.mamoe.mirai.event.events.FriendMessageEvent
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.message.action.Nudge.Companion.sendNudge
-import net.mamoe.mirai.message.data.At
-import net.mamoe.mirai.message.data.MessageChain
+import net.mamoe.mirai.message.data.*
 
 object Plugin : KotlinPlugin(
     JvmPluginDescription(
@@ -106,6 +106,23 @@ object Plugin : KotlinPlugin(
                     .operators.mapNotNull { group.getMember(it)?.asFriendOrNull() },
                 message
             )
+        }
+    }
+
+    fun sendAllPendingRequests(target: Friend){
+        launch {
+            val groups = (config.get().operators2GroupMap[target.id] ?: return@launch).map{ it.toString() }
+            val requests = PendingRequests.whitelistRequests.get().filter { it.group in groups}
+            val msg = buildMessageChain {
+                add("=> Pending Requests\n")
+                requests.groupBy { it.group }.forEach { t, u ->
+                    add("=> From Group $t\n")
+                    u.forEach {
+                        add("${it.sourceDescriptor}(${it.source}) requested to ${it.operation.describe()} ${it.player}${if (it.targetDescriptor == null) "" else " into ${it.targetDescriptor}"}\n")
+                    }
+                }
+            }
+            target.sendMessage(msg)
         }
     }
 

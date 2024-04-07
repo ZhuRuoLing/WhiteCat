@@ -7,7 +7,3 @@ internal val json = Json {
     encodeDefaults = true
     ignoreUnknownKeys = false
 }
-
-class StringBuilderScope(){
-
-}
