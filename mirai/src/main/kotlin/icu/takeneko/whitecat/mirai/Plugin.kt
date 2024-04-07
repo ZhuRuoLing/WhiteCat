@@ -118,7 +118,7 @@ object Plugin : KotlinPlugin(
                 requests.groupBy { it.group }.forEach { t, u ->
                     add("=> From Group $t\n")
                     u.forEach {
-                        add("${it.sourceDescriptor}(${it.source}) requested to ${it.operation.describe()} ${it.player}${if (it.targetDescriptor == null) "" else " into ${it.targetDescriptor}"}\n")
+                        add("[${it.requestId}] ${it.sourceDescriptor}(${it.source}) requested to ${it.operation.describe()} ${it.player}${if (it.targetDescriptor == null) "" else " into ${it.targetDescriptor}"}\n")
                     }
                 }
             }
