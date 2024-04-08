@@ -23,6 +23,7 @@ class DataObject<O : Any>(
         filePath.reader(Charsets.UTF_8).use {
             instance = json.decodeFromString(serializer, it.readText())
         }
+        save()
     }
 
     fun save() {

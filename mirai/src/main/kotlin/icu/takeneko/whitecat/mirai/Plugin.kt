@@ -50,7 +50,11 @@ object Plugin : KotlinPlugin(
         }
         logger.info("Initiating whitelist services")
         config.get().groupSettings.forEach {(s,setting) ->
-            setting.initWhitelistService(s)
+            try{
+                setting.initWhitelistService(s)
+            }catch (e:Exception){
+                logger.error(e)
+            }
         }
         val eventChannel = GlobalEventChannel.parentScope(this)
 

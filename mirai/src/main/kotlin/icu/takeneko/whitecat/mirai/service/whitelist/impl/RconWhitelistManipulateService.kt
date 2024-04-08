@@ -6,6 +6,7 @@ import icu.takeneko.whitecat.mirai.util.json
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import nl.vv32.rcon.Rcon
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 import java.rmi.RemoteException
@@ -15,6 +16,12 @@ import kotlin.io.path.*
 class RconWhitelistManipulateService(private val groupUin: String) : WhitelistManipulateService {
 
     private val rcons = mutableMapOf<String, Rcon>()
+    private val rconIds
+        get() = buildMap<Rcon, String> {
+            for (rcon in rcons) {
+                this += rcon.value to rcon.key
+            }
+        }
     private val groupedRcons = mutableMapOf<String, List<Rcon>>()
     private val rconCommands = mutableMapOf<Rcon, RconCommand>()
     private val filePath = Path("./data/$groupUin-rcon-server.json")
@@ -27,6 +34,7 @@ class RconWhitelistManipulateService(private val groupUin: String) : WhitelistMa
         }
         try {
             configuration = json.decodeFromString(filePath.readText())
+            write()
         } catch (t: Throwable) {
             t.printStackTrace()
             configuration = RconWhitelistConfiguration(mapOf(), mapOf())
@@ -83,11 +91,40 @@ class RconWhitelistManipulateService(private val groupUin: String) : WhitelistMa
         }
     }
 
+    fun sendCommand(rcon:Rcon, command:String):String {
+        try {
+            return try {
+                rcon.sendCommand(command)
+            }catch (e:IOException){
+                e.printStackTrace()
+                reEstablishConnection(rcon).sendCommand(command)
+            }
+        }catch (e:IOException){
+            e.printStackTrace()
+            throw IllegalStateException("Rcon error, cannot re-establish connection.",e)
+        }
+    }
+
+    private fun reEstablishConnection(rcon: Rcon):Rcon{
+        val id = rconIds[rcon] ?: throw IllegalArgumentException("Cannot re-establish connection, because this rcon client $rcon is not registered")
+        val config = configuration.servers[id] ?: throw IllegalArgumentException("Configuration for $rcon not found")
+        val newRcon = Rcon.newBuilder().withChannel(SocketChannel.open(InetSocketAddress(config.address, config.port))).withCharset(Charsets.UTF_8).build()
+        newRcon.tryAuthenticate(config.password)
+        rcons[id] = newRcon
+        rconCommands[newRcon] = rconCommands[rcon] ?: throw IllegalArgumentException("Command configuration for $rcon not found")
+        rconCommands.remove(rcon)
+        val gr = groupedRcons.filter { rcon in it.value }.map { it.key to it.value.toMutableList() }.toMap()
+        gr.forEach {(s,l) ->
+            groupedRcons[s] = l.apply { remove(rcon);add(newRcon) }
+        }
+        return newRcon
+    }
+
     override fun add(target: String, player: String) {
         val ex = RuntimeException("Failed to add player.")
         for (rcon in (groupedRcons[target] ?: throw IllegalArgumentException("Target $target not found"))) {
             val command = rconCommands[rcon] ?: throw IllegalArgumentException("Command configuration for $rcon not found")
-            val result = rcon.sendCommand(command.addWhitelistCommand.replace("%playerName%", player))
+            val result = sendCommand(rcon,command.addWhitelistCommand.replace("%playerName%", player))
             if (!command.addWhitelistResultPattern.matcher(result).matches()){
                 ex.addSuppressed(RemoteException(result))
             }
@@ -101,7 +138,7 @@ class RconWhitelistManipulateService(private val groupUin: String) : WhitelistMa
         val ex = RuntimeException("Failed to remove player.")
         for (rcon in (groupedRcons[target] ?: throw IllegalArgumentException("Target $target not found"))) {
             val command = rconCommands[rcon] ?: throw IllegalArgumentException("Command configuration for $rcon not found")
-            val result = rcon.sendCommand(command.removeWhitelistCommand.replace("%playerName%", player))
+            val result = sendCommand(rcon,command.removeWhitelistCommand.replace("%playerName%", player))
             if (!command.removeWhitelistResultPattern.matcher(result).matches()){
                 ex.addSuppressed(RemoteException(result))
             }

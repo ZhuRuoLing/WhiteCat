@@ -9,8 +9,8 @@ import kotlinx.serialization.Transient
 @Serializable
 data class GroupSetting(
     val operators: List<Long>,
-    val allowedRequests: List<RequestOps>,
-    val whitelistServiceProvider: WhitelistServiceProviders
+    val allowedRequests: List<RequestOps> = listOf(RequestOps.REMOVE, RequestOps.ADD),
+    val whitelistServiceProvider: WhitelistServiceProviders = WhitelistServiceProviders.RCON
 ){
     @Transient
     lateinit var whitelistService: WhitelistManipulateService

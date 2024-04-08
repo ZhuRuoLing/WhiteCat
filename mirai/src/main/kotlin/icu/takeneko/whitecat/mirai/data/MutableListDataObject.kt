@@ -24,6 +24,7 @@ class MutableListDataObject<E>(
         filePath.reader(Charsets.UTF_8).use {
             instance = json.decodeFromString(serializer, it.readText()).toMutableList()
         }
+        save()
     }
 
     fun save() {

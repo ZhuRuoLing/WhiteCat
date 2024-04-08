@@ -18,4 +18,4 @@ data class RconServerConfiguration(
 )
 
 @Serializable
-data class TargetConfiguration(val servers:List<String>, val description: String)
+data class TargetConfiguration(val servers:List<String>, val description: String = "A Minecraft Server")
