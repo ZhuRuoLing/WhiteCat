@@ -43,6 +43,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("com.mojang:brigadier:1.0.18")
     implementation("nl.vv32.rcon:rcon:1.2.0")
+    implementation("io.ktor:ktor-client-cio:2.3.9")
+    implementation("io.ktor:ktor-client-auth:2.3.9")
+    implementation("io.ktor:ktor-client-serialization:2.3.9")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.9")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.9")
 }
 
 tasks.withType<ShadowJar>(){

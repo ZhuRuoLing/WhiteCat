@@ -102,7 +102,7 @@ val whitelistCommand = LiteralCommand("wl") {
                             PendingRequests.whitelistRequests.add(
                                 WhitelistRequest(
                                     playerName,
-                                    RequestOps.ADD,
+                                    RequestOps.REMOVE,
                                     this.source.senderUin.toString(),
                                     this.source.sender.nameCardOrNick,
                                     this.source.groupUin.toString(),
@@ -141,21 +141,18 @@ val whitelistCommand = LiteralCommand("wl") {
     literal("tgt") {
         requires { (this.groupUin in config.get().availableGroups && this.groupUin.toString() in config.get().groupSettings.keys) || this.senderUin in config.get().allOperators }
         execute {
-            val avail = if (this.source.isFromGroup)
-                listOf(config.get().groupSettings[this.source.groupUin.toString()]!!.whitelistService.listAvailable())
-            else
-                config.get().operators2GroupMap[this.source.senderUin.toString()]!!.mapNotNull { config.get().groupSettings[it.toString()]?.whitelistService?.listAvailable() }
-            sendFeedback(
-                "=> All Available ServerTargets\n${
-                    buildString {
-                        avail.forEach {
-                            for ((k, v) in it) {
-                                append("$k: $v\n")
-                            }
+            val avail =
+                if (this.source.isFromGroup) listOf(config.get().groupSettings[this.source.groupUin.toString()]!!.whitelistService.listAvailable())
+                else config.get().operators2GroupMap[this.source.senderUin.toString()]!!.mapNotNull { config.get().groupSettings[it.toString()]?.whitelistService?.listAvailable() }
+            sendFeedback("=> All Available ServerTargets\n${
+                buildString {
+                    avail.forEach {
+                        for ((k, v) in it) {
+                            append("$k: $v\n")
                         }
                     }
-                }"
-            )
+                }
+            }")
             0
         }
     }
@@ -184,20 +181,18 @@ val whitelistCommand = LiteralCommand("wl") {
                             val playerName = getStringArgument("playerName")
                             val requestId = getIntegerArgument("requestId")
                             val serverTarget = getStringArgument("serverTarget")
-                            approveRequests(
-                                this.source,
-                                {
-                                    WhitelistRequest(
-                                        it.player,
-                                        it.operation,
-                                        it.source,
-                                        it.sourceDescriptor,
-                                        it.group,
-                                        it.groupDescriptor,
-                                        serverTarget,
-                                        it.requestId
-                                    )
-                                }) {
+                            approveRequests(this.source, {
+                                WhitelistRequest(
+                                    it.player,
+                                    it.operation,
+                                    it.source,
+                                    it.sourceDescriptor,
+                                    it.group,
+                                    it.groupDescriptor,
+                                    serverTarget,
+                                    it.requestId
+                                )
+                            }) {
                                 it.player == playerName && it.requestId == requestId
                             }
                             0
@@ -210,20 +205,18 @@ val whitelistCommand = LiteralCommand("wl") {
                     execute {
                         val playerName = getStringArgument("playerName")
                         val serverTarget = getStringArgument("serverTarget")
-                        approveRequests(
-                            this.source,
-                            {
-                                WhitelistRequest(
-                                    it.player,
-                                    it.operation,
-                                    it.source,
-                                    it.sourceDescriptor,
-                                    it.group,
-                                    it.groupDescriptor,
-                                    serverTarget,
-                                    it.requestId
-                                )
-                            }) {
+                        approveRequests(this.source, {
+                            WhitelistRequest(
+                                it.player,
+                                it.operation,
+                                it.source,
+                                it.sourceDescriptor,
+                                it.group,
+                                it.groupDescriptor,
+                                serverTarget,
+                                it.requestId
+                            )
+                        }) {
                             it.player == playerName
                         }
                         0
@@ -332,9 +325,9 @@ fun approveRequests(
             }
             removes += k
         } catch (t: Throwable) {
-            val exMessage = if (t is RuntimeException){
-                t.toString() + "\n" + t.suppressed.map { "    $it" }.joinToString("\n","","")
-            }else{
+            val exMessage = if (t is RuntimeException) {
+                t.toString() + "\n" + t.suppressed.map { "    $it" }.joinToString("\n", "", "")
+            } else {
                 t.toString()
             }
             feedbacks.add("Error occurred applying request ${k.player}(${k.requestId}):\n$exMessage")

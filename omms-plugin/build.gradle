@@ -6,14 +6,20 @@ plugins{
 
 repositories {
     mavenCentral()
-    mavenLocal()
-    maven { url = uri("https://jitpack.io") }
-
+    //mavenLocal()
+    maven {
+        url = uri("https://maven.takeneko.icu/releases")
+    }
+    maven {
+        url = uri("https://libraries.minecraft.net")
+    }
 }
 
 dependencies {
-    implementation("com.github.OhMyMinecraftServer:omms-central:master-SNAPSHOT")
-
+    //implementation("com.github.OhMyMinecraftServer:omms-central:master-SNAPSHOT")
+    //use mavenLocal/mavenNeko
+    compileOnly("icu.takeneko:omms-central:0.16.5")
+    //api("icu.takeneko:omms-central:0.16.5")
 }
 
 processResources{
